@@ -85,7 +85,9 @@ For this legal document:\n\n${text}`
 
     res.status(200).json({ text, summary, keyTerms, riskAssessment });
   } catch (error) {
-    console.error("Upload & Analyze error:", error);
-    res.status(500).json({ error: "Failed to analyze document" });
-  }
+  console.error("Upload & Analyze error:", error.response?.data || error.message || error);
+  res.status(500).json({
+    error: error.response?.data || error.message || "Unknown error"
+  });
+}
 }
