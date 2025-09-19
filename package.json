@@ -1,0 +1,14 @@
+{
+  "name": "genai",
+  "version": "1.0.0",
+  "description": "An AI-powered web application that simplifies complex legal documents using Google Cloud's Document AI and Generative AI (Vertex AI). Users can upload legal documents and receive clear summaries, explanations of complex clauses, and answers to their questions.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/vertexai": "^1.10.0"
+  }
+}
