@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Analysis Results - LegalEase</title>
+    <link rel="stylesheet" href="results.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <style>
+      @media print {
+        header, nav, .results-actions {
+          display: none !important;
+        }
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .results-container {
+          width: 100%;
+          margin: 0;
+          padding: 0;
+        }
+      }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="brand">LegalEase</div>
+        <nav class="nav">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="upload.html" class="nav-link">Upload</a>
+            <a href="about.html" class="nav-link">About</a>
+        </nav>
+    </header>
+
+    <main class="results-main">
+        <div class="results-container">
+            <h1 class="results-title">Document Analysis Results</h1>
+
+            <div class="results-content">
+
+                <!-- Summary Section -->
+                <div class="result-section">
+                    <h2 class="section-title">Document Summary</h2>
+                    <div class="summary-card">
+                        <p id="summaryOutput" class="summary-text">Loading summary...</p>
+                    </div>
+                </div>
+
+                <!-- Key Terms Section -->
+                <div class="result-section">
+                    <h2 class="section-title">Key Terms</h2>
+                    <div class="terms-grid" id="keyTermsGrid">
+                        <!-- Dynamically populated key terms will appear here -->
+                    </div>
+                </div>
+
+                <!-- Risk Assessment Section -->
+                <div class="result-section">
+                    <h2 class="section-title">Risk Assessment</h2>
+                    <div class="risks-list" id="riskAssessmentList">
+                        <!-- Dynamically populated risk items will appear here -->
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="results-actions">
+                <button class="action-btn secondary" onclick="window.location.href='upload.html'">
+                    Analyze Another Document
+                </button>
+                <button class="action-btn primary" onclick="window.print()">
+                    Download Report
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const analysisResult = JSON.parse(localStorage.getItem('analysisResult'));
+
+        if (!analysisResult) {
+            alert('No analysis result found. Please upload again.');
+            window.location.href = 'upload.html';
+            return;
+        }
+
+        // ✅ Clean summary (remove * and **)
+        const cleanSummary = analysisResult.summary
+            .replace(/\*\*/g, '')   // remove **
+            .replace(/\*/g, '');    // remove single *
+
+        // Convert summary to paragraphs for better readability
+        const summaryOutput = document.getElementById('summaryOutput');
+        summaryOutput.innerHTML = '';
+
+        cleanSummary.split('\n').forEach(line => {
+            if (line.trim()) {
+                const p = document.createElement('p');
+                p.textContent = line.trim();
+                summaryOutput.appendChild(p);
+            }
+        });
+
+        if (!cleanSummary.trim()) {
+            summaryOutput.textContent = 'No summary generated.';
+        }
+
+        // ✅ Populate Key Terms
+        const keyTermsContainer = document.getElementById('keyTermsGrid');
+        keyTermsContainer.innerHTML = '';
+
+        const keyTermsLines = analysisResult.keyTerms.split('\n')
+            .filter(line => line.trim() && !line.includes('Here are the key terms'));
+
+        keyTermsLines.forEach(termLine => {
+            const cleanLine = termLine.replace(/\*\*/g, '').replace(/\*/g, ''); // clean symbols
+            const [title, value] = cleanLine.split(':').map(x => x.trim());
+            if (title && value) {
+                const termCard = document.createElement('div');
+                termCard.className = 'term-card';
+                termCard.innerHTML = `
+                    <h3 class="term-title">${title}</h3>
+                    <p class="term-value">${value}</p>
+                `;
+                keyTermsContainer.appendChild(termCard);
+            }
+        });
+
+        // ✅ Populate Risk Assessment
+        const risksContainer = document.getElementById('riskAssessmentList');
+        risksContainer.innerHTML = '';
+
+        const riskBlocks = analysisResult.riskAssessment.split('\n- ')
+            .filter(block => block.trim() && !block.includes("Here's a risk assessment"));
+
+        riskBlocks.forEach(block => {
+             const cleanBlock = block.replace(/\*\*/g, '').replace(/\*/g, '');
+    const itemMatch = cleanBlock.match(/Risk Item:\s*(.*)/i);
+    const descMatch = cleanBlock.match(/Description:\s*(.*)/i);
+
+    if (itemMatch) {
+        let severityClass = 'medium';  // Default
+
+        // Extract severity from the description if present
+        const severityMatch = cleanBlock.match(/Severity:\s*(Low|Medium|High)/i);
+        if (severityMatch) {
+            severityClass = severityMatch[1].toLowerCase();
+        } else {
+            // Fallback to keyword-based severity if not present
+            const riskText = cleanBlock.toLowerCase();
+            if (riskText.includes('accuracy') || riskText.includes('validity')) {
+                severityClass = 'high';
+            } else if (riskText.includes('interpretation') || riskText.includes('compliance')) {
+                severityClass = 'medium';
+            } else {
+                severityClass = 'low';
+            }
+        }
+
+        const riskItem = document.createElement('div');
+        riskItem.className = `risk-item ${severityClass}`;
+        riskItem.innerHTML = `
+            <div class="risk-indicator"></div>
+            <div class="risk-content">
+                <h3 class="risk-title">${itemMatch[1]}</h3>
+                <p class="risk-description">${descMatch ? descMatch[1] : ''}</p>
+            </div>
+        `;
+        risksContainer.appendChild(riskItem);
+    }
+        });
+    });
+    </script>
+</body>
+</html>
