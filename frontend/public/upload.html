@@ -133,9 +133,22 @@
   analyzeBtn.textContent = 'Analyzing...';
 
   try {
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
+   const response = await fetch('/api/upload', {
+  method: 'POST',
+  body: formData
+});
+
+const raw = await response.text();
+console.log("Raw response:", raw);
+
+let data;
+try {
+  data = JSON.parse(raw);
+} catch (e) {
+  alert("Backend did not return JSON. Check server logs!");
+  throw e;
+}
+
     });
 
     const data = await response.json();
@@ -156,4 +169,5 @@
     </script>
 </body>
 </html>
+
 
